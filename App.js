@@ -1,6 +1,6 @@
 import React, { Component, useState } from 'react';
 import { View, Image, ActivityIndicator, Alert, Dimensions, Text, StyleSheet, Vibration } from 'react-native';
-import { ScrollView, TextInput, TouchableOpacity } from 'react-native-gesture-handler';
+import { ScrollView, TextInput, TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
 import { Paragraph, Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -10,14 +10,67 @@ import BarcodeMask from 'react-native-barcode-mask';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { SafeAreaView } from 'react-native';
 import { StatusBar } from 'react-native';
+import Constants from 'expo-constants';
+import { Linking } from 'react-native';
 
 const Stack = createStackNavigator();
-const host = "http://192.168.17.6/api";;
+const host = "http://192.168.17.6/api";
+const version = Constants.manifest.version;
+var newVersionUrl = '';
 
 export default function App() {
   const [isLoading, setLoading] = useState(true);
+  const [requireUpdate, setRequireUpdate] = useState(false);
+
+  const checkVersion = ((a, b)=>{
+    let x = a.split('.').map(e => parseInt(e));
+    let y = b.split('.').map(e => parseInt(e));
+    let z = "";
+  
+    for (var i = 0; i < x.length; i++) {
+      if (x[i] === y[i]) {
+        z += "e";
+      } else
+        if (x[i] > y[i]) {
+          z += "m";
+        } else {
+          z += "l";
+        }
+    }
+    if (!z.match(/[l|m]/g)) {
+      return 0;
+    } else if (z.split('e').join('')[0] == "m") {
+      return 1;
+    } else {
+      return -1;
+    }
+  })
 
   React.useEffect(() => {
+    //Check Version against Github Latest Publish
+    const fetchGithub = async () => {
+      let response = await fetch('https://api.github.com/repos/Ryan-Pell/PackingLoadingSearch/releases/latest');
+      let json = await response.json();
+      
+      if(json['tag_name'] != undefined && checkVersion(version, json['tag_name'].substring(1)) == -1){
+        //Find New Version Asset
+        let assets = await fetch(json['assets_url']);
+        let jsonAssets = await assets.json();
+        jsonAssets.forEach(asset => {
+          if(asset['content_type'] == 'application/vnd.android.package-archive'){
+            newVersionUrl = asset['browser_download_url'];
+          }
+        })
+        
+        setRequireUpdate(true);
+      } else {
+        setRequireUpdate(false);
+      }
+    };
+
+    fetchGithub();
+
+    //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
     setTimeout(()=> {setLoading(false)}, length);
   });
@@ -26,7 +79,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      
+      {requireUpdate && <UpdateAvailable />}
       <NavigationContainer>
         <Stack.Navigator>
           {isLoading ? (
@@ -44,8 +97,10 @@ function SplashScreen(){
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       <View style={{ width: 300, height: 60 }}>
-        <Image source={require('./src/logo.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode='contain' />
+        <Image source={require('./assets/logo.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode='contain' />
       </View>
+      <Text style={{ fontWeight:'bold', fontSize: 22 }}>Packing and Loading</Text>
+      <Text style={{ fontSize: 14 }}>Standalone Search & Find</Text>
       <ActivityIndicator size='large' color='#004073' style={{ marginTop: 20 }} />
     </View>
   )
@@ -54,10 +109,21 @@ function SplashScreen(){
 function Header(){
   return(
     <View style={{ height: 50, flexDirection:'column'}}>
-      <Image source={require('./src/logo.png')} style={{ /*position: 'absolute',*/ top: 0, bottom: 0, alignSelf: 'center', width: 220, height: 30, resizeMode: 'contain' }} />
-      <Text style={{alignSelf: 'center', fontSize: 16, fontStyle: 'italic', fontWeight: 'bold'}}>Packing/Loading - Search & Find</Text>
+      <Image source={require('./assets/logo.png')} style={{ top: 0, bottom: 0, alignSelf: 'center', width: 220, height: 30, resizeMode: 'contain' }} />
+      <Text style={{alignSelf: 'center', fontSize: 16, fontWeight: 'bold'}}>Standalone Search & Find</Text>
     </View>
   );
+}
+
+function UpdateAvailable(){
+  return (
+    <TouchableHighlight onPress={() => {Linking.openURL(newVersionUrl)}}>
+      <View style={{ flexDirection: 'row', backgroundColor: 'red' }}>
+        <Icon style={{ alignSelf: 'center', padding: 5, paddingLeft: 15 }} name='alert-circle-outline' size={25} />
+        <Text style={{ flex: 1, alignSelf: 'center', fontSize: 16, fontWeight:'bold' }}>Update Available</Text>
+      </View>      
+    </TouchableHighlight>
+  )
 }
 
 class SearchPart extends Component {
@@ -71,8 +137,8 @@ class SearchPart extends Component {
 
       this.state = {
           loading: false,
-          
-          partNumber : '',
+          bomRef: '',
+          partNumber: '',
           data: [],
           MaskDetails: [],
           showBarcodeScanner : false,
@@ -82,27 +148,21 @@ class SearchPart extends Component {
 
   _clearBtn(){
       this.setState({
+          bomRef: '',
           partNumber: '',
           data: [],
       });
   }
 
   async _submitBtn(){
-      var salesOrder = await AsyncStorage.getItem('salesOrder');
-
       //Show Loading Animation and Remove 'Old' Data
       this.setState({
           loading: true,
           data: []
       });
 
-      var headers = new Headers();
-      var token = await AsyncStorage.getItem('userToken');
-      headers.append("AB-Token", token);
-      var requestOptions = { method: 'GET', headers: headers, redirect: 'follow' };
-      let response = await fetch(`${global.host}/packing-loading/app/implosion/${salesOrder}?part=${this.state.partNumber}`, requestOptions);
+      let response = await fetch(`${host}/packing-loading/app/implosion/?part=${this.state.partNumber}&ref=${this.state.bomRef}`, {method:'GET', redirect: 'follow'});
       let json = await response.json();
-      console.log(json);
 
       if(response.ok){
           this.setState({
@@ -125,11 +185,7 @@ class SearchPart extends Component {
           this.setState({ BarcodeScanned : true, });
           
           //Find PartNumber from DataMatrix
-          var headers = new Headers();
-          var token = await AsyncStorage.getItem('userToken');
-          headers.append("AB-Token", token);
-          var requestOptions = { method: 'GET', headers: headers, redirect: 'follow' };
-          let response = await fetch(`${global.host}/packing-loading/app/worksorder?return=BomReference&number=${data}`, requestOptions);
+          let response = await fetch(`${host}/packing-loading/app/worksorder?return=BomReference&number=${data}`);
           if (response.ok) {
               let json = await response.json();
               var key = Object.keys(json)[0];
@@ -138,8 +194,6 @@ class SearchPart extends Component {
                   showBarcodeScanner: false,
               });
 
-              //Run Search on Successful Scan
-              this._submitBtn();
           } else {
               this.setState({
                   partNumber: '',
@@ -159,14 +213,14 @@ class SearchPart extends Component {
       })
 
       return (
-        
           <View style={{flex:1, backgroundColor: '#e6e6e6', position:'relative'}}>
             <StatusBar backgroundColor='#002E15' />
               <View style={{alignSelf: 'stretch', padding: 10, backgroundColor: 'white', marginHorizontal: 10, borderColor: '#9e9e9e', borderWidth: 1, borderRadius: 5, backgroundColor: 'white', borderTopColor:'transparent', borderTopLeftRadius: 0, borderTopRightRadius: 0}}>
+                <Text style={{paddingBottom: 10, fontStyle: 'italic'}}>Enter BoM Reference for the project and part number that you require the Phase 5 item for.</Text>
                   <View style={{flexDirection:'row', justifyContent:'center', paddingBottom: 10}}>
                     <Text style={{width: 95,textAlignVertical: 'center'}}>BoM Reference:</Text>
                     <View style={style.searchTextInput}>
-                      <TextInput style={{marginRight: 25}} autoCapitalize='characters' value={this.state.partNumber} onChangeText={text => this.setState({partNumber: text})} />
+                      <TextInput style={{marginRight: 25}} autoCapitalize='characters' value={this.state.bomRef} onChangeText={text => this.setState({bomRef: text})} />
                     </View>
                   </View>
                   <View style={{flexDirection:'row', justifyContent:'center'}}>
