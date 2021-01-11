@@ -52,7 +52,7 @@ export default function App() {
     //Using Expo Updates
     //console.log(Updates.manifest);
     var updateRtn = Updates.checkForUpdateAsync();
-    console.log("Update Infomation" +updateRtn);
+    console.log(updateRtn);
 
     //Check Version against Github Latest Publish
     /*const fetchGithub = async () => {
@@ -125,8 +125,9 @@ function Header(){
 function UpdateAvailable(){
   getUpdate = async() => {
     //Expo Update
-    Updates.fetchUpdateAsync();
-
+    await Updates.fetchUpdateAsync();
+    Updates.reloadAsync();
+    
     //Github Published
     //Linking.openURL(newVersionUrl)
   };
