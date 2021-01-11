@@ -4,7 +4,7 @@ import { ScrollView, TextInput, TouchableHighlight, TouchableOpacity } from 'rea
 import { Paragraph, Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Overlay } from 'react-native-elements';
+import { Overlay, PricingCard } from 'react-native-elements';
 import { BarCodeScanner, getPermissionsAsync } from 'expo-barcode-scanner'
 import BarcodeMask from 'react-native-barcode-mask';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -14,9 +14,12 @@ import Constants from 'expo-constants';
 import { Linking } from 'react-native';
 import * as Permissions from 'expo-permissions'
 import * as Updates from 'expo-updates';
+import Ping from 'react-native-ping';
+import { set } from 'react-native-reanimated';
 
 const Stack = createStackNavigator();
-const host = "http://192.168.17.6/api";
+const ip = '192.168.17.6';
+const host = `http://${ip}/api`;
 const version = Constants.manifest.version;
 var newVersionUrl = '';
 
@@ -50,9 +53,11 @@ export default function App() {
 
   React.useEffect(() => { 
     //Using Expo Updates
-    //console.log(Updates.manifest);
-    var updateRtn = Updates.checkForUpdateAsync();
-    console.log(updateRtn);
+    const fetchUpdate = async() => {
+      var rtn = await Updates.checkForUpdateAsync();
+      console.log(rtn);
+    };
+    fetchUpdate();
 
     //Check Version against Github Latest Publish
     /*const fetchGithub = async () => {
@@ -81,8 +86,6 @@ export default function App() {
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
     setTimeout(()=> {setLoading(false)}, length);
   });
-
-
 
   return (
     <SafeAreaView style={{flex: 1}}>
@@ -140,6 +143,46 @@ function UpdateAvailable(){
       </View>      
     </TouchableHighlight>
   )
+}
+
+function NetworkUnavailable(){
+  const [getNetworkGood, setNetworkGood] = useState(true);
+
+  React.useEffect(() => {
+    const interval = setInterval(async() => {
+      const timeout = new Promise((resolve, reject) => { setTimeout(reject, 1000, 'Request Timed Out'); });
+      const request = fetch(`${host}/connection`);
+      try{
+        const response = await Promise.race([timeout, reqeust]);
+        setNetworkGood(true);
+      }
+      catch (error){
+        setNetworkGood(false);
+      }
+
+
+    }, 5000);
+
+    return() => {
+      clearInterval(interval);
+    }
+  });
+
+  if (!getNetworkGood) {
+    return (
+      <View style={{ flexDirection: 'row', backgroundColor: 'orange', borderBottomColor: '#9e9e9e', borderBottomWidth: 1, marginBottom: -1 }}>
+        <Icon style={{ alignSelf: 'center', padding: 5, paddingLeft: 15 }} name='alert-circle-outline' size={25} />
+        <View style={{ flex: 1, alignSelf: 'center', paddingVertical: 5 }}>
+          <Text style={{ fontSize: 16, fontWeight: 'bold' }}>Network Unavailable</Text>
+          <Text>Please check network connection.</Text>
+        </View>
+      </View>
+    )
+  } else {
+    return (
+      null
+    )
+  }
 }
 
 class SearchPart extends Component {
@@ -240,6 +283,7 @@ class SearchPart extends Component {
 
       return (
           <View style={{flex:1, backgroundColor: '#e6e6e6', position:'relative'}}>
+            <NetworkUnavailable />
             <StatusBar backgroundColor='#002E15' />
               <View style={{alignSelf: 'stretch', padding: 10, backgroundColor: 'white', marginHorizontal: 10, borderColor: '#9e9e9e', borderWidth: 1, borderRadius: 5, backgroundColor: 'white', borderTopColor:'transparent', borderTopLeftRadius: 0, borderTopRightRadius: 0}}>
                 <Text style={{paddingBottom: 10, fontStyle: 'italic'}}>Enter BoM Reference for the project and part number that you require the Phase 5 item for.</Text>
