@@ -54,33 +54,14 @@ export default function App() {
   React.useEffect(() => { 
     //Using Expo Updates
     const fetchUpdate = async() => {
-      var rtn = await Updates.checkForUpdateAsync();
-      console.log(rtn);
-    };
-    fetchUpdate();
+      var update = await Updates.checkForUpdateAsync();
+      console.log(update.isAvailable);
 
-    //Check Version against Github Latest Publish
-    /*const fetchGithub = async () => {
-      let response = await fetch('https://api.github.com/repos/Ryan-Pell/PackingLoadingSearch/releases/latest');
-      let json = await response.json();
-      
-      if(json['tag_name'] != undefined && checkVersion(version, json['tag_name'].substring(1)) == -1){
-        console.log("update required");
-        //Find New Version Asset
-        let assets = await fetch(json['assets_url']);
-        let jsonAssets = await assets.json();
-        jsonAssets.forEach(asset => {
-          if(asset['content_type'] == 'application/vnd.android.package-archive'){
-            newVersionUrl = asset['browser_download_url'];
-          }
-        })
-        
+      if(update.isAvailable){
         setRequireUpdate(true);
-      } else {
-        setRequireUpdate(false);
       }
     };
-    fetchGithub();*/
+    fetchUpdate();
 
     //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
@@ -130,9 +111,6 @@ function UpdateAvailable(){
     //Expo Update
     await Updates.fetchUpdateAsync();
     Updates.reloadAsync();
-    
-    //Github Published
-    //Linking.openURL(newVersionUrl)
   };
 
   return (
