@@ -153,7 +153,7 @@ function NetworkUnavailable(){
       const timeout = new Promise((resolve, reject) => { setTimeout(reject, 1000, 'Request Timed Out'); });
       const request = fetch(`${host}/connection`);
       try{
-        const response = await Promise.race([timeout, reqeust]);
+        const response = await Promise.race([timeout, request]);
         setNetworkGood(true);
       }
       catch (error){
