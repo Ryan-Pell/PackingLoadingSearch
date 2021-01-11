@@ -13,6 +13,7 @@ import { StatusBar } from 'react-native';
 import Constants from 'expo-constants';
 import { Linking } from 'react-native';
 import * as Permissions from 'expo-permissions'
+import * as Updates from 'expo-updates';
 
 const Stack = createStackNavigator();
 const host = "http://192.168.17.6/api";
@@ -47,9 +48,14 @@ export default function App() {
     }
   })
 
-  React.useEffect(() => {
+  React.useEffect(() => { 
+    //Using Expo Updates
+    //console.log(Updates.manifest);
+    var updateRtn = Updates.checkForUpdateAsync();
+    console.log("Update Infomation" +updateRtn);
+
     //Check Version against Github Latest Publish
-    const fetchGithub = async () => {
+    /*const fetchGithub = async () => {
       let response = await fetch('https://api.github.com/repos/Ryan-Pell/PackingLoadingSearch/releases/latest');
       let json = await response.json();
       
@@ -69,7 +75,7 @@ export default function App() {
         setRequireUpdate(false);
       }
     };
-    fetchGithub();
+    fetchGithub();*/
 
     //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
@@ -117,6 +123,14 @@ function Header(){
 }
 
 function UpdateAvailable(){
+  getUpdate = async() => {
+    //Expo Update
+    Updates.fetchUpdateAsync();
+
+    //Github Published
+    //Linking.openURL(newVersionUrl)
+  };
+
   return (
     <TouchableHighlight onPress={() => {Linking.openURL(newVersionUrl)}}>
       <View style={{ flexDirection: 'row', backgroundColor: 'red' }}>
