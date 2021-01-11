@@ -5,6 +5,10 @@
     "version": "0.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/SplashScreen.png",
+      "backgroundColor": "#FFFFFF"
+    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -16,8 +20,11 @@
       "package": "com.ryanpell.packingloading.searchfind",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FFFFFF"
-      }
+        "backgroundColor": "#004073"
+      },
+      "permissions": [
+        "CAMERA", "VIBRATE"
+      ]
     }
   }
 }

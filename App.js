@@ -5,13 +5,14 @@ import { Paragraph, Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Overlay } from 'react-native-elements';
-import { BarCodeScanner } from 'expo-barcode-scanner'
+import { BarCodeScanner, getPermissionsAsync } from 'expo-barcode-scanner'
 import BarcodeMask from 'react-native-barcode-mask';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { SafeAreaView } from 'react-native';
 import { StatusBar } from 'react-native';
 import Constants from 'expo-constants';
 import { Linking } from 'react-native';
+import * as Permissions from 'expo-permissions'
 
 const Stack = createStackNavigator();
 const host = "http://192.168.17.6/api";
@@ -53,6 +54,7 @@ export default function App() {
       let json = await response.json();
       
       if(json['tag_name'] != undefined && checkVersion(version, json['tag_name'].substring(1)) == -1){
+        console.log("update required");
         //Find New Version Asset
         let assets = await fetch(json['assets_url']);
         let jsonAssets = await assets.json();
@@ -67,7 +69,6 @@ export default function App() {
         setRequireUpdate(false);
       }
     };
-
     fetchGithub();
 
     //Rand Time for Loading
@@ -79,7 +80,7 @@ export default function App() {
 
   return (
     <SafeAreaView style={{flex: 1}}>
-      {requireUpdate && <UpdateAvailable />}
+      {(requireUpdate && !isLoading) && <UpdateAvailable />}
       <NavigationContainer>
         <Stack.Navigator>
           {isLoading ? (
@@ -134,6 +135,7 @@ class SearchPart extends Component {
       this._clearBtn = this._clearBtn.bind(this);
       this.BarCodeMaskDetails = this.BarCodeMaskDetails.bind(this);
       this.BarCodeScanned = this.BarCodeScanned.bind(this);
+      this.showBarcodeOverlay = this.showBarcodeOverlay.bind(this);
 
       this.state = {
           loading: false,
@@ -148,7 +150,6 @@ class SearchPart extends Component {
 
   _clearBtn(){
       this.setState({
-          bomRef: '',
           partNumber: '',
           data: [],
       });
@@ -175,6 +176,16 @@ class SearchPart extends Component {
           });
           Alert.alert('API Response' ,json['response']);
       }
+  }
+
+  async showBarcodeOverlay(){
+    const { status } = await Permissions.askAsync(Permissions.CAMERA);
+    
+    if(status === 'granted'){
+      this.setState({ showBarcodeScanner: true, BarcodeScanned: false });
+    } else {
+      Alert.alert("Requires Camera Permission", "Please allow camera permissions to use the barcode scanner.");
+    }    
   }
 
   async BarCodeScanned({ type, data, bounds, cornerPoints }){
@@ -229,7 +240,7 @@ class SearchPart extends Component {
                           <TextInput style={{marginRight: 25}} autoCapitalize='characters' value={this.state.partNumber} onChangeText={text => this.setState({partNumber: text})} />
                           <View style={{position: 'absolute', right: 7}}>
                               <TouchableOpacity>
-                                  <Icon onPress={() => this.setState({ showBarcodeScanner: true, BarcodeScanned: false })} size={22} name="barcode-scan" />
+                                  <Icon onPress={async () => await this.showBarcodeOverlay()} size={22} name="barcode-scan" />
                               </TouchableOpacity>
                           </View>     
                           <Overlay isVisible={this.state.showBarcodeScanner} onBackdropPress={() => this.setState({showBarcodeScanner: false})} overlayStyle={{ overflow: "hidden", padding: 0 }}>
