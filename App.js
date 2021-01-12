@@ -101,7 +101,7 @@ function Header(){
   return(
     <View style={{ height: 50, flexDirection:'column'}}>
       <Image source={require('./assets/logo.png')} style={{ top: 0, bottom: 0, alignSelf: 'center', width: 220, height: 30, resizeMode: 'contain' }} />
-      <Text style={{alignSelf: 'center', fontSize: 16, fontWeight: 'bold'}}>Standalone Search & Find</Text>
+      <Text style={{alignSelf: 'center', fontSize: 16, fontWeight: 'bold'}}>Standalone Search & Find - Test</Text>
     </View>
   );
 }

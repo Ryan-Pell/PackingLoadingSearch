@@ -33,7 +33,8 @@
     "react-native-screens": "^2.16.1",
     "react-native-unimodules": "~0.12.0",
     "react-native-vector-icons": "^7.1.0",
-    "react-native-web": "~0.13.12"
+    "react-native-web": "~0.13.12",
+    "turtle-cli": "^0.20.5"
   },
   "devDependencies": {
     "@babel/core": "~7.9.0",
