@@ -6,7 +6,8 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "github-publish": "expo export --public-url https://ryan-pell.github.io/PackingLoadingSearch --force",
-    "github-build-android": "expo build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/android-index.json"
+    "github-build-android": "expo build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/android-index.json",
+    "adb-debug": "adb logcat *:S ReactNative:V ReactNativeJS:V"
   },
   "dependencies": {
     "@react-native-community/masked-view": "^0.1.10",

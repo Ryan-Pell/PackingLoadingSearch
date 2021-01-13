@@ -55,7 +55,7 @@ export default function App() {
     //Using Expo Updates
     const fetchUpdate = async() => {
       var update = await Updates.checkForUpdateAsync();
-      console.log(update.isAvailable);
+      console.log("Update Status: " + update.isAvailable);
 
       if(update.isAvailable){
         setRequireUpdate(true);
@@ -86,14 +86,17 @@ export default function App() {
 
 function SplashScreen(){
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={{ width: 300, height: 60 }}>
-        <Image source={require('./assets/logo.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode='contain' />
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{flex:1, justifyContent:'center', alignItems:'center'}}>
+        <View style={{ width: 300, height: 60 }}>
+          <Image source={require('./assets/logo.png')} style={{ flex: 1, width: undefined, height: undefined }} resizeMode='contain' />
+        </View>
+        <Text style={{ fontWeight:'bold', fontSize: 22 }}>Packing and Loading</Text>
+        <Text style={{ fontSize: 14 }}>Standalone Search & Find</Text>
+        <ActivityIndicator size='large' color='#004073' style={{ marginTop: 20 }} />        
       </View>
-      <Text style={{ fontWeight:'bold', fontSize: 22 }}>Packing and Loading</Text>
-      <Text style={{ fontSize: 14 }}>Standalone Search & Find</Text>
-      <ActivityIndicator size='large' color='#004073' style={{ marginTop: 20 }} />
-    </View>
+      <Text style={{alignSelf:'center', padding: 10, color:'#999'}}>© Ryan Pell (2021) - v{version}</Text>
+    </SafeAreaView>
   )
 }
 
@@ -301,8 +304,13 @@ class SearchPart extends Component {
                   </View>
               </View>
               {this.state.loading && <ActivityIndicator animating={true} color={'rgb(0,94,42)'} size={'large'} style={{paddingTop: 20}} />}
-              <ScrollView>
+              <ScrollView contentContainerStyle={{flexGrow: 1}}>
+                <ScrollView>
                   {render_data}
+                </ScrollView>
+                <View>
+                  <Text style={{alignSelf:'center', padding: 5, color:'#999'}}>v{version}</Text>  
+                </View>
               </ScrollView>
           </View>
       );
