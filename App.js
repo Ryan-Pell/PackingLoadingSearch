@@ -24,13 +24,14 @@ export default function App() {
   const [requireUpdate, setRequireUpdate] = useState(false);
   const appState = useRef(AppState.currentState);
 
-  React.useEffect(() => { 
+  React.useEffect(() => {
     //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
     setTimeout(()=> {setLoading(false)}, length);
 
     //AppState Listener
     AppState.addEventListener("change", _handleAppStateChange);
+    _handleAppStateChange();
 
     //Remove Listeners
     return () => {
@@ -45,9 +46,9 @@ export default function App() {
     if(nextAppState === "active"){
       //Check for Update
       var update = await Updates.checkForUpdateAsync();
-      console.log("Update Available", update.isAvailable);
+      console.log(update.manifest);
 
-      if(update.isAvailable){ setRequireUpdate(true); }
+      if(update.isAvailable){ setRequireUpdate(true); console.log("Update Available") }
       else { setRequireUpdate(false); }
     }
   }
