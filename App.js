@@ -42,7 +42,7 @@ export default function App() {
     appState.current = nextAppState;
     console.log("Application State (AppState) is " + appState.current);
 
-    if(appState.current.match(/inactive|background/) && nextAppState === "active"){
+    if(nextAppState === "active"){
       //Check for Update
       var update = await Updates.checkForUpdateAsync();
       console.log("Update Available", update.isAvailable);
