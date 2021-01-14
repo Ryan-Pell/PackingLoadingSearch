@@ -1,11 +1,11 @@
-import React, { Component, useState } from 'react';
-import { View, Image, ActivityIndicator, Alert, Dimensions, Text, StyleSheet, Vibration } from 'react-native';
+import React, { Component, useState, useRef } from 'react';
+import { View, Image, ActivityIndicator, Alert, Dimensions, Text, StyleSheet, Vibration, AppState } from 'react-native';
 import { ScrollView, TextInput, TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
 import { Paragraph, Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Overlay, PricingCard } from 'react-native-elements';
-import { BarCodeScanner, getPermissionsAsync } from 'expo-barcode-scanner'
+import { Overlay } from 'react-native-elements';
+import { BarCodeScanner } from 'expo-barcode-scanner'
 import BarcodeMask from 'react-native-barcode-mask';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
 import { SafeAreaView } from 'react-native';
@@ -14,46 +14,20 @@ import Constants from 'expo-constants';
 import { Linking } from 'react-native';
 import * as Permissions from 'expo-permissions'
 import * as Updates from 'expo-updates';
-import Ping from 'react-native-ping';
-import { set } from 'react-native-reanimated';
 
 const Stack = createStackNavigator();
 const ip = '192.168.17.6';
 const host = `http://${ip}/api`;
 const version = Constants.manifest.version;
-var newVersionUrl = '';
 
 export default function App() {
   const [isLoading, setLoading] = useState(true);
   const [requireUpdate, setRequireUpdate] = useState(false);
-
-  const checkVersion = ((a, b)=>{
-    let x = a.split('.').map(e => parseInt(e));
-    let y = b.split('.').map(e => parseInt(e));
-    let z = "";
-  
-    for (var i = 0; i < x.length; i++) {
-      if (x[i] === y[i]) {
-        z += "e";
-      } else
-        if (x[i] > y[i]) {
-          z += "m";
-        } else {
-          z += "l";
-        }
-    }
-    if (!z.match(/[l|m]/g)) {
-      return 0;
-    } else if (z.split('e').join('')[0] == "m") {
-      return 1;
-    } else {
-      return -1;
-    }
-  })
+  const appState = useRef(AppState.currentState);
 
   React.useEffect(() => { 
     //Using Expo Updates
-    const fetchUpdate = async() => {
+    /*const fetchUpdate = async() => {
       var update = await Updates.checkForUpdateAsync();
       console.log("Update Status: " + update.isAvailable);
 
@@ -61,13 +35,35 @@ export default function App() {
         setRequireUpdate(true);
       }
     };
-    fetchUpdate();
+    fetchUpdate();*/
 
     //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
     setTimeout(()=> {setLoading(false)}, length);
+
+    //AppState Listener
+    AppState.addEventListener("change", _handleAppStateChange);
+
+    //Remove Listeners
+    return () => {
+      AppState.removeEventListener("change", _handleAppStateChange);
+    };
   });
 
+  const _handleAppStateChange = async(nextAppState) => {
+    if(appState.current.match(/inactive|background/) && nextAppState === "active"){
+      //Check for Update
+      var update = await Updates.checkForUpdateAsync();
+      console.log("Update Available", update.isAvailable);
+
+      if(update.isAvailable){ setRequireUpdate(true); }
+      else { setRequireUpdate(false); }
+    }
+
+    appState.current = nextAppState;
+    console.log("Application State (AppState)", appState.current);
+  }
+  
   return (
     <SafeAreaView style={{flex: 1}}>
       {(requireUpdate && !isLoading) && <UpdateAvailable />}
