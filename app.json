@@ -20,7 +20,7 @@
       "package": "com.ryanpell.packingloading.searchfind",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#004073"
+        "backgroundColor": "#006130"
       },
       "permissions": [
         "CAMERA", "VIBRATE"
