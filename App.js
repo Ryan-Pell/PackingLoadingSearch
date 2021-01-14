@@ -4,7 +4,7 @@ import { ScrollView, TextInput, TouchableHighlight, TouchableOpacity } from 'rea
 import { Paragraph, Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Overlay } from 'react-native-elements';
+import { colors, Overlay } from 'react-native-elements';
 import { BarCodeScanner } from 'expo-barcode-scanner'
 import BarcodeMask from 'react-native-barcode-mask';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons'
@@ -16,9 +16,16 @@ import * as Permissions from 'expo-permissions'
 import * as Updates from 'expo-updates';
 
 const Stack = createStackNavigator();
-const ip = '192.168.17.6';
-const host = `http://${ip}/api`;
+const host = `http://192.168.17.6/api`;
 const version = Constants.manifest.version;
+
+//Append console.log
+var old = console.log;
+console.log = function(){
+  let date = new Date();
+  Array.prototype.unshift.call(arguments, `\n${date.getFullYear()}-${("0" + (date.getMonth()+1)).slice(-2)}-${("0" + date.getDate()).slice(-2)} ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}:${("0" + date.getSeconds()).slice(-2)} ---`);
+  old.apply(this,arguments);
+}
 
 export default function App() {
   const [isLoading, setLoading] = useState(true);
@@ -41,7 +48,7 @@ export default function App() {
 
   const _handleAppStateChange = async(nextAppState) => {
     appState.current = nextAppState;
-    console.log("Application State (AppState)", appState.current);
+    console.log("Application State (AppState) is", appState.current);
 
     if(appState.current.match(/inactive|background/) && nextAppState === "active"){
       //Check for Update
@@ -112,29 +119,36 @@ function UpdateAvailable(){
 }
 
 function NetworkUnavailable(){
-  const [getNetworkGood, setNetworkGood] = useState(true);
+  const [getNetworkGood, setNetworkGood] = useState(null);
 
   React.useEffect(() => {
-    const interval = setInterval(async() => {
-      const timeout = new Promise((resolve, reject) => { setTimeout(reject, 1000, 'Request Timed Out'); });
-      const request = fetch(`${host}/connection`);
-      try{
-        const response = await Promise.race([timeout, request]);
-        setNetworkGood(true);
-      }
-      catch (error){
-        setNetworkGood(false);
-      }
-
-
-    }, 5000);
+    const interval = setInterval(_testConnection, 10000);
+    _testConnection();
 
     return() => {
       clearInterval(interval);
     }
   });
 
-  if (!getNetworkGood) {
+  const _testConnection = async() => {
+    const timeout = new Promise((resolve, reject) => { setTimeout(reject, 1000, 'Request Timed Out'); });
+      const request = fetch(`${host}/connection`);
+      try{
+        const response = await Promise.race([timeout, request]);
+        if(getNetworkGood != true){
+          setNetworkGood(true);
+          console.log(`Network Connected (${host})`);          
+        }
+      }
+      catch (error){
+        if(getNetworkGood != false){
+          setNetworkGood(false);
+          console.log(`Network Unavailable`);          
+        }
+      }
+  }
+
+  if (getNetworkGood === false) {
     return (
       <View style={{ flexDirection: 'row', backgroundColor: 'orange', borderBottomColor: '#9e9e9e', borderBottomWidth: 1, marginBottom: -1 }}>
         <Icon style={{ alignSelf: 'center', padding: 5, paddingLeft: 15 }} name='alert-circle-outline' size={25} />
@@ -190,14 +204,16 @@ class SearchPart extends Component {
       let json = await response.json();
 
       if(response.ok){
-          this.setState({
-              loading: false,
-              data: json,
-          });            
+        console.log("API - BoM Implosion Search with return", JSON.stringify(json));
+        this.setState({
+            loading: false,
+            data: json,
+        });            
       } else {
           this.setState({
               loading: false
           });
+          console.log("API Failed with", JSON.stringify({"request": response.url, "return": json['response']}));
           Alert.alert('API Response' ,json['response']);
       }
   }
@@ -215,6 +231,19 @@ class SearchPart extends Component {
   async BarCodeScanned({ type, data, bounds, cornerPoints }){
       var MaskDetails = this.state.MaskDetails;
       var scanned = this.state.BarcodeScanned;
+
+      if(!scanned){ //ADB Debug
+        console.log("Barcode Scan Data of", JSON.stringify({
+          "BarCodeScanned": {
+            "type": type,
+            "data": data,
+            "bounds": bounds,
+            "cornerPoints": cornerPoints,          
+          },
+          "MaskDetails": MaskDetails
+        }));        
+      }
+
       if (!scanned && bounds.origin.x >= MaskDetails.x && bounds.origin.y >= MaskDetails.y && Math.floor(bounds.size.height + bounds.origin.y) <= Math.floor(MaskDetails.height + MaskDetails.y) && Math.floor(bounds.size.width + bounds.origin.x) <= Math.floor(MaskDetails.width + MaskDetails.x)) {
           Vibration.vibrate();
           this.setState({ BarcodeScanned : true, });
@@ -223,6 +252,7 @@ class SearchPart extends Component {
           let response = await fetch(`${host}/packing-loading/app/worksorder?return=BomReference&number=${data}`);
           if (response.ok) {
               let json = await response.json();
+              console.log("API - Works Order Find with return", JSON.stringify(json))
               var key = Object.keys(json)[0];
               this.setState({
                   partNumber: json[key],
@@ -230,6 +260,8 @@ class SearchPart extends Component {
               });
 
           } else {
+              let json = await response.json();
+              console.log("API Failed with", JSON.stringify({"request": response.url,"return": json['response']}));
               this.setState({
                   partNumber: '',
                   showBarcodeScanner: false,

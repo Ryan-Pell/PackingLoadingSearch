@@ -6,7 +6,8 @@
     "web": "expo start --web",
     "eject": "expo eject",
     "github-publish": "expo export --public-url https://ryan-pell.github.io/PackingLoadingSearch --force",
-    "github-build-android": "expo build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/android-index.json",
+    "expo-build-apk": "expo build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/android-index.json",
+    "turtle-build-apk" : "turtle build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/android-index.json --type apk",
     "adb-debug": "adb logcat *:S ReactNative:V ReactNativeJS:V"
   },
   "dependencies": {
