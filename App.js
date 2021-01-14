@@ -43,11 +43,9 @@ export default function App() {
     appState.current = nextAppState;
     console.log("Application State (AppState) is " + appState.current);
 
-    if(nextAppState === "active"){
+    if((nextAppState === "active" || appState.current === undefined) && requireUpdate == false){
       //Check for Update
       var update = await Updates.checkForUpdateAsync();
-      console.log(update.manifest);
-
       if(update.isAvailable){ setRequireUpdate(true); console.log("Update Available") }
       else { setRequireUpdate(false); }
     }
