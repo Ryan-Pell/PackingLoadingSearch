@@ -46,7 +46,7 @@ export default function App() {
     if((nextAppState === "active" || appState.current === undefined) && requireUpdate == false){
       //Check for Update
       var update = await Updates.checkForUpdateAsync();
-      if(update.isAvailable){ setRequireUpdate(true); console.log("Update Available") }
+      if(update.isAvailable){ setRequireUpdate(true); console.log("Update Available with manifest " + JSON.stringify(update.manifest)) }
       else { setRequireUpdate(false); }
     }
   }
