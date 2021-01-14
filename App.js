@@ -19,14 +19,6 @@ const Stack = createStackNavigator();
 const host = `http://192.168.17.6/api`;
 const version = Constants.manifest.version;
 
-//Append console.log
-var old = console.log;
-console.log = function(){
-  let date = new Date();
-  Array.prototype.unshift.call(arguments, `\n${date.getFullYear()}-${("0" + (date.getMonth()+1)).slice(-2)}-${("0" + date.getDate()).slice(-2)} ${("0" + date.getHours()).slice(-2)}:${("0" + date.getMinutes()).slice(-2)}:${("0" + date.getSeconds()).slice(-2)} ---`);
-  old.apply(this,arguments);
-}
-
 export default function App() {
   const [isLoading, setLoading] = useState(true);
   const [requireUpdate, setRequireUpdate] = useState(false);
@@ -48,7 +40,7 @@ export default function App() {
 
   const _handleAppStateChange = async(nextAppState) => {
     appState.current = nextAppState;
-    console.log("Application State (AppState) is", appState.current);
+    console.log("Application State (AppState) is " + appState.current);
 
     if(appState.current.match(/inactive|background/) && nextAppState === "active"){
       //Check for Update
@@ -204,7 +196,7 @@ class SearchPart extends Component {
       let json = await response.json();
 
       if(response.ok){
-        console.log("API - BoM Implosion Search with return", JSON.stringify(json));
+        console.log("API - BoM Implosion Search with return " + JSON.stringify(json));
         this.setState({
             loading: false,
             data: json,
@@ -213,7 +205,7 @@ class SearchPart extends Component {
           this.setState({
               loading: false
           });
-          console.log("API Failed with", JSON.stringify({"request": response.url, "return": json['response']}));
+          console.log("API Failed with " + JSON.stringify({"request": response.url, "return": json['response']}));
           Alert.alert('API Response' ,json['response']);
       }
   }
@@ -233,7 +225,7 @@ class SearchPart extends Component {
       var scanned = this.state.BarcodeScanned;
 
       if(!scanned){ //ADB Debug
-        console.log("Barcode Scan Data of", JSON.stringify({
+        console.log("Barcode Scan Data of" + JSON.stringify({
           "BarCodeScanned": {
             "type": type,
             "data": data,
@@ -252,7 +244,7 @@ class SearchPart extends Component {
           let response = await fetch(`${host}/packing-loading/app/worksorder?return=BomReference&number=${data}`);
           if (response.ok) {
               let json = await response.json();
-              console.log("API - Works Order Find with return", JSON.stringify(json))
+              console.log("API - Works Order Find with return " + JSON.stringify(json))
               var key = Object.keys(json)[0];
               this.setState({
                   partNumber: json[key],
@@ -261,7 +253,7 @@ class SearchPart extends Component {
 
           } else {
               let json = await response.json();
-              console.log("API Failed with", JSON.stringify({"request": response.url,"return": json['response']}));
+              console.log("API Failed with " + JSON.stringify({"request": response.url,"return": json['response']}));
               this.setState({
                   partNumber: '',
                   showBarcodeScanner: false,
