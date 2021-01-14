@@ -26,8 +26,6 @@ export default function App() {
   const appState = useRef(AppState.currentState);
 
   React.useEffect(() => { 
-    console.log("Manifest // packagerOpts // dev -", Constants.manifest.packagerOpts.dev);
-
     //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
     setTimeout(()=> {setLoading(false)}, length);
@@ -45,16 +43,13 @@ export default function App() {
     appState.current = nextAppState;
     console.log("Application State (AppState)", appState.current);
 
-
     if(appState.current.match(/inactive|background/) && nextAppState === "active"){
       //Check for Update
-      if(!Platform.isTesting){
-        var update = await Updates.checkForUpdateAsync();
-        console.log("Update Available", update.isAvailable);
+      var update = await Updates.checkForUpdateAsync();
+      console.log("Update Available", update.isAvailable);
 
-        if(update.isAvailable){ setRequireUpdate(true); }
-        else { setRequireUpdate(false); }        
-      }
+      if(update.isAvailable){ setRequireUpdate(true); }
+      else { setRequireUpdate(false); }
     }
   }
   

@@ -2,7 +2,7 @@
   "expo": {
     "name": "AB - Packing & Loading Search",
     "slug": "PackingLoadingSearch",
-    "version": "0.0.13",
+    "version": "0.0.14",
     "orientation": "portrait",
     "icon": "./assets/adaptive-icon.png",
     "splash": {
