@@ -1,5 +1,5 @@
 import React, { Component, useState, useRef } from 'react';
-import { View, Image, ActivityIndicator, Alert, Dimensions, Text, StyleSheet, Vibration, AppState } from 'react-native';
+import { View, Image, ActivityIndicator, Alert, Dimensions, Text, StyleSheet, Vibration, AppState, Platform } from 'react-native';
 import { ScrollView, TextInput, TouchableHighlight, TouchableOpacity } from 'react-native-gesture-handler';
 import { Paragraph, Button } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
@@ -26,16 +26,7 @@ export default function App() {
   const appState = useRef(AppState.currentState);
 
   React.useEffect(() => { 
-    //Using Expo Updates
-    /*const fetchUpdate = async() => {
-      var update = await Updates.checkForUpdateAsync();
-      console.log("Update Status: " + update.isAvailable);
-
-      if(update.isAvailable){
-        setRequireUpdate(true);
-      }
-    };
-    fetchUpdate();*/
+    console.log("Manifest // packagerOpts // dev -", Constants.manifest.packagerOpts.dev);
 
     //Rand Time for Loading
     var length = Math.floor(Math.random() * (2000 - 500 + 1) + 500);
@@ -51,17 +42,20 @@ export default function App() {
   });
 
   const _handleAppStateChange = async(nextAppState) => {
-    if(appState.current.match(/inactive|background/) && nextAppState === "active"){
-      //Check for Update
-      var update = await Updates.checkForUpdateAsync();
-      console.log("Update Available", update.isAvailable);
-
-      if(update.isAvailable){ setRequireUpdate(true); }
-      else { setRequireUpdate(false); }
-    }
-
     appState.current = nextAppState;
     console.log("Application State (AppState)", appState.current);
+
+
+    if(appState.current.match(/inactive|background/) && nextAppState === "active"){
+      //Check for Update
+      if(!Platform.isTesting){
+        var update = await Updates.checkForUpdateAsync();
+        console.log("Update Available", update.isAvailable);
+
+        if(update.isAvailable){ setRequireUpdate(true); }
+        else { setRequireUpdate(false); }        
+      }
+    }
   }
   
   return (
