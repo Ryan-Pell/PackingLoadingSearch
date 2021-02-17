@@ -191,7 +191,7 @@ class SearchPart extends Component {
           data: []
       });
 
-      let response = await fetch(`${host}/packing-loading/app/implosion/?part=${this.state.partNumber}&ref=${this.state.bomRef}`, {method:'GET', redirect: 'follow'});
+      let response = await fetch(`${host}/production/packing_loading/app_standalone/search?part=${this.state.partNumber}&ref=${this.state.bomRef}`, {method:'GET', redirect: 'follow'});
       let json = await response.json();
 
       if(response.ok){
