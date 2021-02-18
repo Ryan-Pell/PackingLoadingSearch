@@ -240,13 +240,12 @@ class SearchPart extends Component {
           this.setState({ BarcodeScanned : true, });
           
           //Find PartNumber from DataMatrix
-          let response = await fetch(`${host}/packing-loading/app/worksorder?return=BomReference&number=${data}`);
+          let response = await fetch(`${host}/production/packing_loading/app_standalone/scan/${data}`);
           if (response.ok) {
               let json = await response.json();
-              console.log("API - Works Order Find with return " + JSON.stringify(json))
-              var key = Object.keys(json)[0];
+              console.log("API - Works Order Find Return " + JSON.stringify(json));
               this.setState({
-                  partNumber: json[key],
+                  partNumber: json['BomReference'],
                   showBarcodeScanner: false,
               });
 
