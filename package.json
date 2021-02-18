@@ -5,11 +5,12 @@
     "ios": "react-native run-ios",
     "web": "expo start --web",
     "eject": "expo eject",
+    "expo-debug": "expo r -c",
     "github-publish-dev": "expo export --public-url https://ryan-pell.github.io/PackingLoadingSearch/dev --force --output-dir docs/dev",
     "github-publish-prod": "expo export --public-url https://ryan-pell.github.io/PackingLoadingSearch/prod --force --output-dir docs/prod",
     "expo-build-apk": "expo build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/android-index.json",
-    "turtle-build-apk-dev" : "turtle build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/dev/android-index.json --type apk",
-    "turtle-build-apk-prod" : "turtle build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/prod/android-index.json --type apk",
+    "turtle-build-apk-dev": "turtle build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/dev/android-index.json --type apk",
+    "turtle-build-apk-prod": "turtle build:android --public-url https://ryan-pell.github.io/PackingLoadingSearch/prod/android-index.json --type apk",
     "adb-debug": "adb logcat *:S ReactNative:V ReactNativeJS:V"
   },
   "dependencies": {
@@ -28,6 +29,7 @@
     "react-dom": "16.13.1",
     "react-native": "~0.63.4",
     "react-native-barcode-mask": "^1.2.4",
+    "react-native-camera": "^3.42.2",
     "react-native-elements": "^3.1.0",
     "react-native-gesture-handler": "^1.9.0",
     "react-native-paper": "^4.5.0",
